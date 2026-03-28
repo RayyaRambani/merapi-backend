@@ -134,6 +134,25 @@ app.post('/api/v1/data', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// =========================
+// GET DATA (FLUTTER)
+// =========================
+app.get('/api/v1/data', async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT * FROM sensor_data 
+             ORDER BY created_at DESC 
+             LIMIT 10`
+        );
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("GET ERROR:", err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
