@@ -1,3 +1,14 @@
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const db = require('./db');
+
+const app = express(); // 🔥 WAJIB DI ATAS
+
+app.use(cors());
+app.use(express.json());
+
 // =========================
 // EXPORT CSV BY DATE
 // =========================
@@ -41,4 +52,8 @@ app.get('/api/v1/export', async (req, res) => {
         console.error("EXPORT ERROR:", err);
         res.status(500).json({ error: 'Server error export' });
     }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
