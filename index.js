@@ -1,7 +1,21 @@
-// =========================
-// INSERT DATA (POST)
-// =========================
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const db = require('./db');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+// ========================================
+// POST DATA DARI RECEIVER ESP32
+// ========================================
 app.post('/api/v1/data', async (req, res) => {
+
     try {
 
         const {
@@ -23,7 +37,6 @@ app.post('/api/v1/data', async (req, res) => {
 
         const received_time = new Date();
 
-        // Delay
         let delay = null;
 
         if (sent_time) {
@@ -31,7 +44,6 @@ app.post('/api/v1/data', async (req, res) => {
             delay = (received_time - sent) / 1000;
         }
 
-        // Distance
         function calculateDistance(lat1, lon1, lat2, lon2) {
 
             const R = 6371e3;
@@ -52,7 +64,8 @@ app.post('/api/v1/data', async (req, res) => {
                 Math.sin(Δλ / 2);
 
             const c =
-                2 * Math.atan2(
+                2 *
+                Math.atan2(
                     Math.sqrt(a),
                     Math.sqrt(1 - a)
                 );
@@ -143,4 +156,132 @@ app.post('/api/v1/data', async (req, res) => {
             error: 'Server error'
         });
     }
+});
+
+// ========================================
+// GET 10 DATA TERBARU
+// ========================================
+app.get('/api/v1/data', async (req, res) => {
+
+    try {
+
+        const result = await db.query(
+            `
+            SELECT *
+            FROM sensor_data
+            ORDER BY id DESC
+            LIMIT 10
+            `
+        );
+
+        res.json(result.rows);
+
+    } catch (err) {
+
+        console.error("GET ERROR:", err);
+
+        res.status(500).json({
+            error: 'Server error'
+        });
+    }
+});
+
+// ========================================
+// EXPORT CSV
+// ========================================
+app.get('/api/v1/export', async (req, res) => {
+
+    try {
+
+        const { date } = req.query;
+
+        if (!date) {
+            return res.status(400).json({
+                error: 'Tanggal wajib diisi'
+            });
+        }
+
+        const start = new Date(date);
+
+        const end = new Date(date);
+        end.setDate(end.getDate() + 1);
+
+        const result = await db.query(
+            `
+            SELECT *
+            FROM sensor_data
+            WHERE created_at >= $1
+            AND created_at < $2
+            ORDER BY created_at ASC
+            `,
+            [start, end]
+        );
+
+        const rows = result.rows;
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                error: 'Data tidak ditemukan'
+            });
+        }
+
+        let csv =
+            'node_id,packet_id,temperature,gas,pressure,humidity,bmp_temperature,altitude,satellites,rssi,snr,lat,lon,delay,distance,created_at\n';
+
+        rows.forEach(row => {
+
+            csv +=
+                `${row.node_id},` +
+                `${row.packet_id ?? ''},` +
+                `${row.temperature ?? ''},` +
+                `${row.gas ?? ''},` +
+                `${row.pressure ?? ''},` +
+                `${row.humidity ?? ''},` +
+                `${row.bmp_temperature ?? ''},` +
+                `${row.altitude ?? ''},` +
+                `${row.satellites ?? ''},` +
+                `${row.rssi ?? ''},` +
+                `${row.snr ?? ''},` +
+                `${row.lat ?? ''},` +
+                `${row.lon ?? ''},` +
+                `${row.delay ?? ''},` +
+                `${row.distance ?? ''},` +
+                `${row.created_at}\n`;
+        });
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment(`data-${date}.csv`);
+        res.send(csv);
+
+    } catch (err) {
+
+        console.error("EXPORT ERROR:", err);
+
+        res.status(500).json({
+            error: 'Server error export'
+        });
+    }
+});
+
+// ========================================
+// ROOT TEST
+// ========================================
+app.get('/', (req, res) => {
+
+    res.json({
+        status: 'OK',
+        message: 'Merapi Monitoring API Running'
+    });
+
+});
+
+// ========================================
+// START SERVER
+// ========================================
+app.listen(PORT, () => {
+
+    console.log(
+        `Server running on port ${PORT}`
+    );
+
 });
