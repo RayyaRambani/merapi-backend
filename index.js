@@ -20,126 +20,47 @@ app.post('/api/v1/data', async (req, res) => {
 
         const {
             node_id,
-            packet_id,
             temperature,
             gas,
             pressure,
-            humidity,
-            bmp_temperature,
-            altitude,
-            satellites,
-            rssi,
-            snr,
             lat,
             lon,
-            sent_time
+            rssi,
+            snr
         } = req.body;
 
         const received_time = new Date();
-
-        let delay = null;
-
-        if (sent_time) {
-            const sent = new Date(sent_time);
-            delay = (received_time - sent) / 1000;
-        }
-
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-
-            const R = 6371e3;
-
-            const toRad = (deg) => deg * Math.PI / 180;
-
-            const φ1 = toRad(lat1);
-            const φ2 = toRad(lat2);
-
-            const Δφ = toRad(lat2 - lat1);
-            const Δλ = toRad(lon2 - lon1);
-
-            const a =
-                Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                Math.cos(φ1) *
-                Math.cos(φ2) *
-                Math.sin(Δλ / 2) *
-                Math.sin(Δλ / 2);
-
-            const c =
-                2 *
-                Math.atan2(
-                    Math.sqrt(a),
-                    Math.sqrt(1 - a)
-                );
-
-            return R * c;
-        }
-
-        const BASE_LAT = -7.54;
-        const BASE_LON = 110.44;
-
-        let distance = null;
-
-        if (
-            lat !== undefined &&
-            lon !== undefined &&
-            lat !== 0 &&
-            lon !== 0
-        ) {
-            distance =
-                calculateDistance(
-                    lat,
-                    lon,
-                    BASE_LAT,
-                    BASE_LON
-                );
-        }
 
         const result = await db.query(
             `
             INSERT INTO sensor_data
             (
                 node_id,
-                packet_id,
                 temperature,
                 gas,
                 pressure,
-                humidity,
-                bmp_temperature,
-                altitude,
-                satellites,
-                rssi,
-                snr,
                 lat,
                 lon,
-                event_time,
-                received_time,
-                delay,
-                distance
+                rssi,
+                snr,
+                received_time
             )
             VALUES
             (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9,
-                $10,$11,$12,$13,$14,$15,$16,$17
+                $1,$2,$3,$4,$5,$6,$7,$8,$9
             )
             RETURNING *
             `,
             [
                 node_id,
-                packet_id,
                 temperature,
                 gas,
                 pressure,
-                humidity,
-                bmp_temperature,
-                altitude,
-                satellites,
-                rssi,
-                snr,
                 lat,
                 lon,
-                sent_time,
-                received_time,
-                delay,
-                distance
+                rssi,
+                snr,
+                received_time
             ]
         );
 
@@ -226,26 +147,19 @@ app.get('/api/v1/export', async (req, res) => {
         }
 
         let csv =
-            'node_id,packet_id,temperature,gas,pressure,humidity,bmp_temperature,altitude,satellites,rssi,snr,lat,lon,delay,distance,created_at\n';
+            'node_id,temperature,gas,pressure,lat,lon,rssi,snr,created_at\n';
 
         rows.forEach(row => {
 
             csv +=
                 `${row.node_id},` +
-                `${row.packet_id ?? ''},` +
                 `${row.temperature ?? ''},` +
                 `${row.gas ?? ''},` +
                 `${row.pressure ?? ''},` +
-                `${row.humidity ?? ''},` +
-                `${row.bmp_temperature ?? ''},` +
-                `${row.altitude ?? ''},` +
-                `${row.satellites ?? ''},` +
-                `${row.rssi ?? ''},` +
-                `${row.snr ?? ''},` +
                 `${row.lat ?? ''},` +
                 `${row.lon ?? ''},` +
-                `${row.delay ?? ''},` +
-                `${row.distance ?? ''},` +
+                `${row.rssi ?? ''},` +
+                `${row.snr ?? ''},` +
                 `${row.created_at}\n`;
         });
 
@@ -280,8 +194,6 @@ app.get('/', (req, res) => {
 // ========================================
 app.listen(PORT, () => {
 
-    console.log(
-        `Server running on port ${PORT}`
-    );
+    console.log(`Server running on port ${PORT}`);
 
 });
