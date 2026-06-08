@@ -37,6 +37,7 @@ app.post('/api/v1/data', async (req, res) => {
             (
                 node_id,
                 temperature,
+                humidity,
                 gas,
                 pressure,
                 lat,
