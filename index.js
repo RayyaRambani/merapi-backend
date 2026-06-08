@@ -21,6 +21,7 @@ app.post('/api/v1/data', async (req, res) => {
         const {
             node_id,
             temperature,
+            humidity,
             gas,
             pressure,
             lat,
@@ -48,13 +49,14 @@ app.post('/api/v1/data', async (req, res) => {
             )
             VALUES
             (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
             )
             RETURNING *
             `,
             [
                 node_id,
                 temperature,
+                humidity,
                 gas,
                 pressure,
                 lat,
@@ -148,13 +150,14 @@ app.get('/api/v1/export', async (req, res) => {
         }
 
         let csv =
-            'node_id,temperature,gas,pressure,lat,lon,rssi,snr,created_at\n';
+            'node_id,temperature,humidity,gas,pressure,lat,lon,rssi,snr,created_at\n';
 
         rows.forEach(row => {
 
             csv +=
                 `${row.node_id},` +
                 `${row.temperature ?? ''},` +
+                `${row.humidity ?? ''},` +
                 `${row.gas ?? ''},` +
                 `${row.pressure ?? ''},` +
                 `${row.lat ?? ''},` +
