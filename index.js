@@ -27,6 +27,7 @@ app.post('/api/v1/data', async (req, res) => {
             pressure,
             lat,
             lon,
+            satellites,
             rssi,
             snr
         } = req.body;
@@ -48,13 +49,14 @@ app.post('/api/v1/data', async (req, res) => {
                 pressure,
                 lat,
                 lon,
+                satellite,
                 rssi,
                 snr,
                 received_time
             )
             VALUES
             (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
             )
             RETURNING *
             `,
@@ -67,6 +69,7 @@ app.post('/api/v1/data', async (req, res) => {
                 pressure,
                 lat,
                 lon,
+                satellites,
                 rssi,
                 snr,
                 received_time
@@ -169,6 +172,7 @@ app.get('/api/v1/export', async (req, res) => {
                 `${row.pressure ?? ''},` +
                 `${row.lat ?? ''},` +
                 `${row.lon ?? ''},` +
+                `${row.satellites ?? ''},` +
                 `${row.rssi ?? ''},` +
                 `${row.snr ?? ''},` +
                 `${row.created_at}\n`;
