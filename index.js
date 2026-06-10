@@ -49,7 +49,7 @@ app.post('/api/v1/data', async (req, res) => {
                 pressure,
                 lat,
                 lon,
-                satellite,
+                satellites,
                 rssi,
                 snr,
                 received_time
