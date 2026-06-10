@@ -20,6 +20,7 @@ app.post('/api/v1/data', async (req, res) => {
 
         const {
             node_id,
+            packet_id,
             temperature,
             humidity,
             gas,
@@ -29,6 +30,9 @@ app.post('/api/v1/data', async (req, res) => {
             rssi,
             snr
         } = req.body;
+        console.log("========== NEW DATA ==========");
+        console.log(req.body);
+        console.log("packet_id =", packet_id);
 
         const received_time = new Date();
 
@@ -37,6 +41,7 @@ app.post('/api/v1/data', async (req, res) => {
             INSERT INTO sensor_data
             (
                 node_id,
+                packet_id,
                 temperature,
                 humidity,
                 gas,
@@ -49,12 +54,13 @@ app.post('/api/v1/data', async (req, res) => {
             )
             VALUES
             (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
             )
             RETURNING *
             `,
             [
                 node_id,
+                packet_id,
                 temperature,
                 humidity,
                 gas,
@@ -150,12 +156,13 @@ app.get('/api/v1/export', async (req, res) => {
         }
 
         let csv =
-            'node_id,temperature,humidity,gas,pressure,lat,lon,rssi,snr,created_at\n';
+            'node_id,packet_id,temperature,humidity,gas,pressure,lat,lon,rssi,snr,created_at\n';
 
         rows.forEach(row => {
 
             csv +=
                 `${row.node_id},` +
+                `${row.packet_id},` +
                 `${row.temperature ?? ''},` +
                 `${row.humidity ?? ''},` +
                 `${row.gas ?? ''},` +
