@@ -22,9 +22,13 @@ app.post('/api/v1/data', async (req, res) => {
             node_id,
             packet_id,
             temperature,
+            temperature_kf,
             humidity,
+            humidity_kf,
             gas,
+            gas_kf,
             pressure,
+            pressure_kf,
             lat,
             lon,
             satellites,
@@ -44,9 +48,13 @@ app.post('/api/v1/data', async (req, res) => {
                 node_id,
                 packet_id,
                 temperature,
+                temperature_kf,
                 humidity,
+                humidity_kf,
                 gas,
+                gas_kf,
                 pressure,
+                pressure_kf,
                 lat,
                 lon,
                 satellites,
@@ -56,7 +64,7 @@ app.post('/api/v1/data', async (req, res) => {
             )
             VALUES
             (
-                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
             )
             RETURNING *
             `,
@@ -64,9 +72,13 @@ app.post('/api/v1/data', async (req, res) => {
                 node_id,
                 packet_id,
                 temperature,
+                temperature_kf,
                 humidity,
+                humidity_kf,
                 gas,
+                gas_kf,
                 pressure,
+                pressure_kf,
                 lat,
                 lon,
                 satellites,
@@ -159,7 +171,7 @@ app.get('/api/v1/export', async (req, res) => {
         }
 
         let csv =
-            'node_id,packet_id,temperature,humidity,gas,pressure,lat,lon,rssi,snr,created_at\n';
+            'node_id,packet_id,temperature,temperature_kf,humidity,humidity_kf,gas,gas_kf,pressure,pressure_kf,lat,lon,satellites,rssi,snr,created_at\n';
 
         rows.forEach(row => {
 
@@ -167,9 +179,13 @@ app.get('/api/v1/export', async (req, res) => {
                 `${row.node_id},` +
                 `${row.packet_id},` +
                 `${row.temperature ?? ''},` +
+                `${row.temperature_kf ?? ''},` +
                 `${row.humidity ?? ''},` +
+                `${row.humidity_kf ?? ''},` +
                 `${row.gas ?? ''},` +
+                `${row.gas_kf ?? ''},` +
                 `${row.pressure ?? ''},` +
+                `${row.pressure_kf ?? ''},` +
                 `${row.lat ?? ''},` +
                 `${row.lon ?? ''},` +
                 `${row.satellites ?? ''},` +
